@@ -20,7 +20,13 @@ public class SecurityFilter extends OncePerRequestFilter {
     public SecurityFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
-
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.contains("/swagger-ui") ||
+                path.contains("/v3/api-docs") ||
+                path.contains("/api/auth");
+    }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {

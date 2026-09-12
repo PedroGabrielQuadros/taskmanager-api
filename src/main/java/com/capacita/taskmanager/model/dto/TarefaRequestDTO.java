@@ -2,7 +2,6 @@ package com.capacita.taskmanager.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
 public class TarefaRequestDTO {
 
     @NotBlank(message = "O título é obrigatório")

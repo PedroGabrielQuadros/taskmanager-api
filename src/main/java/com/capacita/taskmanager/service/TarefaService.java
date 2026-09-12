@@ -1,82 +1,69 @@
 package com.capacita.taskmanager.service;
 
+import com.capacita.taskmanager.exception.TarefaNaoEncontradaException;
+import com.capacita.taskmanager.model.dto.TarefaRequestDTO;
+import com.capacita.taskmanager.model.dto.TarefaResponseDTO;
 import com.capacita.taskmanager.model.entity.Tarefa;
 import com.capacita.taskmanager.model.entity.Usuario;
 import com.capacita.taskmanager.repository.TarefaRepository;
 import com.capacita.taskmanager.repository.UsuarioRepository;
-import org.springframework.http.HttpStatus;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import com.capacita.taskmanager.model.dto.TarefaResponseDTO;
-import com.capacita.taskmanager.model.dto.TarefaRequestDTO;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+@Service("tarefaService")
 public class TarefaService {
 
     private final TarefaRepository tarefaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ModelMapper modelMapper;
 
-    public TarefaService(TarefaRepository tarefaRepository, UsuarioRepository usuarioRepository){
-        this.tarefaRepository= tarefaRepository;
-        this.usuarioRepository= usuarioRepository;
+    public TarefaService(TarefaRepository tarefaRepository, UsuarioRepository usuarioRepository, ModelMapper modelMapper) {
+        this.tarefaRepository = tarefaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.modelMapper = modelMapper;
     }
 
-    public TarefaResponseDTO criar (String emailUsuario, TarefaRequestDTO dto){
-        Usuario usuario = buscarUsuarioPorEmail(emailUsuario);
+    public com.capacita.taskmanager.model.dto.TarefaResponseDTO criarTarefa(com.capacita.taskmanager.model.dto.TarefaRequestDTO dto, String emailUsuario) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario).orElseThrow();
+        Tarefa tarefa = modelMapper.map(dto, Tarefa.class);
+        tarefa.setUsuario(usuario);
 
-        Tarefa novaTarefa = new Tarefa(dto.getTitulo(),dto.getDescricao(),usuario);
-        Tarefa tarefaSalva = tarefaRepository.save(novaTarefa);
-
-        return converterParaResponseDTO(tarefaSalva);
+        tarefa = tarefaRepository.save(tarefa);
+        return modelMapper.map(tarefa, com.capacita.taskmanager.model.dto.TarefaResponseDTO.class);
     }
 
-    public List<TarefaResponseDTO> listarTodasTarefasDoUsuario(String emailUsuario){
-        Usuario usuario= buscarUsuarioPorEmail(emailUsuario);
+    public List<com.capacita.taskmanager.model.dto.TarefaResponseDTO> listarTarefas(String emailUsuario) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario).orElseThrow();
+        List<Tarefa> tarefas = tarefaRepository.findByUsuarioId(usuario.getId());
 
-        return tarefaRepository.findByUsuarioId(usuario.getId())
-                .stream()
-                .map(this::converterParaResponseDTO)
+        return tarefas.stream()
+                .map(tarefa -> modelMapper.map(tarefa, com.capacita.taskmanager.model.dto.TarefaResponseDTO.class))
                 .collect(Collectors.toList());
     }
 
-    public TarefaResponseDTO atualizar (Long id, String emailUsuario,TarefaRequestDTO dto){
-        Tarefa tarefa= buscarTarefaValidandoDono(id, emailUsuario);
+    public TarefaResponseDTO atualizarTarefa(Long id, TarefaRequestDTO dto) {
+        Tarefa tarefa = tarefaRepository.findById(id)
+                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+
         tarefa.setTitulo(dto.getTitulo());
         tarefa.setDescricao(dto.getDescricao());
 
-        Tarefa tarefaAtualizada =tarefaRepository.save(tarefa);
-        return converterParaResponseDTO(tarefaAtualizada);
+        tarefa = tarefaRepository.save(tarefa);
+        return modelMapper.map(tarefa, TarefaResponseDTO.class);
     }
 
-    public void deletar (Long id, String emailUsuario){
-        Tarefa tarefa =buscarTarefaValidandoDono(id, emailUsuario);
+    public void deletarTarefa(Long id) {
+        Tarefa tarefa = tarefaRepository.findById(id)
+                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
         tarefaRepository.delete(tarefa);
     }
 
-    private Usuario buscarUsuarioPorEmail(String emailUsuario){
-        return usuarioRepository.findByEmail(emailUsuario)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
-    }
-
-    private Tarefa buscarTarefaValidandoDono(Long tarefaId, String emailUsuario){
-        Tarefa tarefa= tarefaRepository.findById(tarefaId)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa nao encontrada"));
-
-        if (!tarefa.getUsuario().getEmail().equals(emailUsuario)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar esta tarefa.");
-        }
-        return tarefa;
-    }
-
-    private TarefaResponseDTO converterParaResponseDTO(Tarefa tarefa){
-        return new TarefaResponseDTO(
-                tarefa.getId(),
-                tarefa.getTitulo(),
-                tarefa.getDescricao(),
-                tarefa.getIsConcluida()
-        );
+    public boolean isOwner(String emailUsuario, Long tarefaId) {
+        Tarefa tarefa = tarefaRepository.findById(tarefaId)
+                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+        return tarefa.getUsuario().getEmail().equals(emailUsuario);
     }
 }

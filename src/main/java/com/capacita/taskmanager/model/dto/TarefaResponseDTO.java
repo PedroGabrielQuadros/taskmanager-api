@@ -1,5 +1,7 @@
 package com.capacita.taskmanager.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class TarefaResponseDTO {
 
     private Long id;
