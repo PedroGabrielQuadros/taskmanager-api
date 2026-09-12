@@ -26,10 +26,10 @@ public class Tarefa {
 
     public Tarefa(){}
 
-    public Tarefa(String titulo, String descricao, boolean isConcluida, Usuario usuario) {
+    public Tarefa(String titulo, String descricao, Usuario usuario) {
         this.titulo = titulo;
         this.descricao = descricao;
-        this.isConcluida = isConcluida;
+        this.isConcluida = false;
         this.usuario=usuario;
     }
 
@@ -57,7 +57,7 @@ public class Tarefa {
         this.descricao = descricao;
     }
 
-    public boolean isConcluida() {
+    public boolean getIsConcluida() {
         return isConcluida;
     }
 

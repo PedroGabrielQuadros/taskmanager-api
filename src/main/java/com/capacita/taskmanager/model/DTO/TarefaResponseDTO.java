@@ -6,7 +6,7 @@ public class TarefaResponseDTO {
     private String titulo;
     private String descricao;
     private boolean concluida;
-    
+
     public TarefaResponseDTO() {}
 
     public TarefaResponseDTO(Long id, String titulo, String descricao, boolean concluida) {
