@@ -51,7 +51,7 @@ public class TarefaController {
             @ApiResponse(responseCode = "403", description = "Não é o dono da tarefa"),
             @ApiResponse(responseCode = "404", description = "Tarefa não encontrada")
     })
-    @PreAuthorize("@tarefaService.isOwner(principal.name, #id)")
+    @PreAuthorize("@tarefaService.isOwner(authentication.name, #id)")
     public ResponseEntity<TarefaResponseDTO> atualizarTarefa(@PathVariable Long id, @RequestBody TarefaRequestDTO dto) {
         return ResponseEntity.ok(tarefaService.atualizarTarefa(id, dto));
     }
@@ -63,7 +63,8 @@ public class TarefaController {
             @ApiResponse(responseCode = "403", description = "Não é o dono da tarefa"),
             @ApiResponse(responseCode = "404", description = "Tarefa não encontrada")
     })
-    @PreAuthorize("@tarefaService.isOwner(principal.name, #id)")
+
+    @PreAuthorize("@tarefaService.isOwner(authentication.name, #id)")
     public ResponseEntity<Void> deletarTarefa(@PathVariable Long id) {
         tarefaService.deletarTarefa(id);
         return ResponseEntity.noContent().build();

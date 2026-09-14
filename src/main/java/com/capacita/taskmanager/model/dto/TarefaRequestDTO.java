@@ -2,6 +2,7 @@ package com.capacita.taskmanager.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 public class TarefaRequestDTO {
 
     @NotBlank(message = "O título é obrigatório")
@@ -10,10 +11,16 @@ public class TarefaRequestDTO {
 
     private String descricao;
 
+    private boolean concluida;
+
     public TarefaRequestDTO() {}
 
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
+
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public boolean isConcluida() { return concluida; }
+    public void setConcluida(boolean concluida) { this.concluida = concluida; }
 }

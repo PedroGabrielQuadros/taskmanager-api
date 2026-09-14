@@ -50,6 +50,7 @@ public class TarefaService {
 
         tarefa.setTitulo(dto.getTitulo());
         tarefa.setDescricao(dto.getDescricao());
+        tarefa.setConcluida(dto.isConcluida());
 
         tarefa = tarefaRepository.save(tarefa);
         return modelMapper.map(tarefa, TarefaResponseDTO.class);
